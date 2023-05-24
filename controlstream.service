@@ -1,0 +1,11 @@
+[Unit]
+Description=ControlStream Start RTMP Server 
+After=network.target
+
+[Service]
+Type=simple
+PIDFile=/var/run/controlstream.pid
+ExecStart=/usr/bin/python3 /home/pi/ControlStream.py 
+
+[Install]
+WantedBy=multi-user.target
