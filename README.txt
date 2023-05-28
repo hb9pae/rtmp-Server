@@ -2,8 +2,14 @@ README.txt
 ----------
 
 Funktion
-Wir detektieren pulizierte Streams unter /run/shm/ngin und spielen den ersten gefundenen Stream ab.
+Wir detektieren publizierte Streams unter /run/shm/ngin und spielen den ersten gefundenen Stream ab.
 
+2023-05-29:
+Version 17
+        Fehler beim Beenden der Testbilder behoben.
+        Diverse kleine Anpaasungen veim Aufruf der Processe. Funktipn PTT geprüft
+        Fehlermeldungen beim Aufruf von Processen werden nun geloggt.
+	Start- und Stop von Processen leicht überarbeitet
 
 2022-10-16; 
 Version 16
