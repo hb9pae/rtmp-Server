@@ -1,0 +1,111 @@
+<h1>RTMP-Server</h1>
+<p>Version 17, 2023-05-30, hb9pae</p>
+<hr />
+<h2>Server-Status</h2>
+<ul>
+<li><a href="stats.xls">RTMP-Server Status</a></li>
+<li><a href="streamlog.php">RTMP-Server Logfile</a></li>
+</ul>
+<hr />
+<h2>Video-Streams</h2>
+<p>Mit dem VLC-Player koennen folgende Video-Streams abgerufen werden</p>
+<ul>
+<li>Flash Video:        rtmp://IP-ADRESSE/vod/sample.flv</li>
+<li>MP4 Video 1     rtmp://IP-ADRESSE/vod2/1.mp4</li>
+<li>MP4 Video 2     rtmp://IP-ADRESSE/vod2/2.mp4</li>
+<li>MP4 Video 3     rtmp://IP-ADRESSE/vod2/3.mp4</li>
+<li>MP4 Video 4     rtmp://IP-ADRESSE/vod2/4.mp4</li>
+</ul>
+<hr />
+<h1>Kurzbeschreibung</h1>
+<p>Dieses Programmpaket steuert ein digitales Amteurfunk-TV Relais (DATV) mit 
+einen DATV Umsetzer. </p>
+<h2>Einleitung</h2>
+<p>Funkamateure senden ihre ATV-Signale ueber Internet zum Umsetzer, dieser empfaengt die Signale 
+und sendet Bild- und Tondaten auf einer Amateurfunkfrequenz wieder aus.
+Gleichzeitig verteilt der RTPM-Server die empfangenen Streamdaten ueber seine Internetadressen wieder an weitere Empfaenger. 
+Das vorliegende Programm laeuft auf einem Raspberry PI Model 4. </p>
+<h2>Funktionsbeschreibung</h2>
+<p>Der RTMP-Server wartet auf einen RTMP-Datenstream (Video und Audio). Wird eine gueltiger 
+Datenstream resp. Streamschluesssel erkannt,  wird die PTT aktiviert und der Datenstream
+(Video &amp; Audio) auf dem HDMI-Anschluss ausgegeben. 
+Parallel wird der Datenstream zum Download ueber die eigene Ethernet-Schnittstelle ausgegeben.
+Das Audio-Signal wird zusaetzlich noch auf der Soundkarte ausgegeben.
+Im Idle-Mode (kein RTMP-Datenstream) werden auf der HDMI-Schnittstelle Testbilder ausgegeben. </p>
+<br>
+<h2>Programm-Komponenten</h2>
+<p>Zur Steuerung dient eine Python Programm, das je nach Status die einzelnen Subprozesse 
+startet oder stopt.</p>
+<ol>
+<li>
+<p>RTMP-Server
+Als RTMP-Server dient der NGINX-Webserver mit dem Zusatzmodul "nginx-rtmp-module"
+Erkennt der RTMP-Server gueltige Stream-Daten schreibt er den Streamschluessel unter 
+/run/shm/nginx. Der RTMP-Server stellt die Streamdaten unter 
+rtmp://localhost/live/STREAMSCHLUESSEL zur Verfuegung. </p>
+</li>
+<li>
+<p>IDLE-MODE
+Bedingung: Streamschluessel (/run/shm/nginx) nicht vorhanden.
+Ausgabe der Testbiler aus dem Verzeichnis "Testbilder" an die HDMI-Schnittstelle
+Intervall 30 Sekunden. Format: JPG ode PNG. Filename beliebig, Suffix ".JPG" 
+Process: playTestPict, fbi - Linux framebuffer imageviewer </p>
+</li>
+<li>
+<p>RTMP-Mode 
+Bedingung: Streamschluessel (String, normalerweise Rufzeichen des Funkamteurs)
+Wird ein Streamschluessel erkannt, beendet die Logik den IDLE-Mode und wechselt in den RTMP-Mode. 
+Die vom RTMP-Server empfangenen Stream-Daten werden in einen FIFO-Buffer geschrieben. 
+Process:  rtmpdump - toolkit for RTMP streams
+Der Process OMX-Player liest die Daten aus dem FIFO-Buffer aus und sendet diese Stream-
+Daten an die HDMI Schnittstelle.</p>
+</li>
+<li>
+<p>RTMP-Test MODE
+Bedingung: Streamschluessel numerisch  1, 2, 3 oder 4
+Test Mode:
+<ul>
+<li>    1:  Playback device 0 Speaker Test stereo</li>
+<li>    2:  Playback device 1 Speaker Test stereo</li>
+<li>	3:  Playback MP4 Video 1080p 60fps ueber HDMI</liY
+<li>	4:  Playback MP4 Video 1080p 60fps local</li>
+</ui>
+</ol>
+<p>
+<h2>Logfile</h2>
+<p>Star- / Stop der Betriebsmodes oder Fehlermeldungen werden in das Logfile geschrieben.
+LOG:  /var/www/stream.log  oder http://<IP>/streamlog.php</p>
+<h2>Streamstatus</h2>
+<p>Der Streamstatus ist unter http://IP-ADRESSE/stats.xls verfuegbar. </p>
+<h2>Betrieb</h2>
+<p>Das Programm laeuft im Hintergrund und wird durch den Systemdienst systemd aufgerufen:
+sudo systemctl enable controlstream         Autostart erlauben
+Mit einem Reboot wird das Programm automatisch gestartet.  </p>
+<h2>Publizieren mit OBS Studio</h2>
+<p>Zum Publizieren des DATV-Datenstreams kann OBS (Open Broadcast Studio) verwendet werden.
+Konfiguration OBS:  Neben der Serveradresse  (rtmp://10.10.10.1/live) muss auch das eigene 
+Rufzeichen als Streamschluessel eingetragen werden. </p>
+<h2>DATV-Stream empfangen (VLC Player)</h2>
+<p>Mit dem VLC Player kann der aktuelle Datenstream empfangen und angezeigt werden.</p>
+<h2>Test Modes</h2>
+<p>Folgende Test Modes stehen zur Verfuegung. Die Selektion der Test erfolgt mit dem OBS Streamschlussel:</p>
+<ul>
+<li>Streamschluessel = 1  AUDIO-TEST via HDMI und der eingbauten Soundkarte (Device hw:0)</li>
+<li>Streamschluessel = 2  AUDIO-TEST via externe USB-Soundkarte (Device hw:1)</li>
+<li>Streamschluessel = 3      Abspielen eines MP4 Videos ueber HDMI bbb_sunflower_1080p_60fps_normal.mp4" </li>
+<li>Streamschluessel = 4      Abspielen eines MP4 Videos ueber den lokalen Videoausgang bbb_sunflower_1080p_60fps_normal.mp4" </li>
+</ul>
+<h2>Abruf Video mit VLC </h2>
+Anstelle des Live-Streams koennen mit VLC folgende Videosequenzen abgerufen werden:</p>
+<li>rtmp://<IP-ADRESSE>vod/sample.flv     Play Flash Video</li>
+<li>rtmp://<IP-ADRESSE>/vod2/1.mp4            Play MP4 Video 1    </li>
+<li>rtmp://<IP-ADRESSE>/vod2/2.mp4            Play MP4 Video 2    </li>
+<li>rtmp://<IP-ADRESSE>/vod2/3.mp4            Play MP4 Video 3    </li>
+<li>rtmp://<IP-ADRESSE>/vod2/4.mp4            Play MP4 Video 4    </li>
+
+<h2>Referenzen</h2>
+<ul>
+<li><a href="https://manpages.ubuntu.com/manpages/bionic/man1/fbi.1.html">fbi:</a></li>
+<li><a href="https://rtmpdump.mplayerhq.hu/">rtmpdump:</a></li>
+<li><a href="https://obsproject.com/">OBS:</a></li>
+</ul>

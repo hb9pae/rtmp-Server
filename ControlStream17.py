@@ -266,7 +266,7 @@ def playTest(name) :
 	if (p.returncode) :
 		#logActivity("Error: %d" % (p.returncode) )
 		logActivity("Error: %d %s" % (p.returncode, __name__) )
-		pdb.set_trace()
+		#pdb.set_trace()
 	time.sleep(1)
 	muteSounds()
 	activestream = ""
@@ -274,8 +274,12 @@ def playTest(name) :
 def getStreamList() :
 	return(os.listdir(streamlistpath))
 
+def copyFiles():
+	os.popen('cp /home/pi/index.html /var/www/index.html') 
+
 def init():
 	logActivity("Init %s %s" % (__file__, version))
+	copyFiles()
 	stopTestPict()
 	killrtmpDump()
 	killOMXplayer()
@@ -326,8 +330,6 @@ def autorun() :
 # ---- main() -------
 def main() :
 	logActivity("Autorun")
-#	autorun()
-
 	try :
 		autorun()
 	except Exception as inst :
